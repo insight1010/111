@@ -1,0 +1,1680 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Битва с ленью</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #4f46e5;
+            --background: #f8fafc;
+            --text: #1e293b;
+            --card: #ffffff;
+            --accent: #f43f5e;
+            --health: #22c55e;
+            --evil: #dc2626;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        body {
+            background: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .app {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 20px;
+            padding-bottom: 80px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 20px;
+            color: white;
+        }
+
+        .health-bar {
+            margin-top: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            height: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .health-fill {
+            background: var(--health);
+            height: 100%;
+            width: 80%;
+            transition: width 0.3s ease;
+        }
+
+        .player-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--card);
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .minion-battle {
+            background: linear-gradient(135deg, var(--evil), var(--accent));
+            color: white;
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            animation: pulse 2s infinite;
+        }
+
+        .battle-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .battle-option {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .battle-option:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .battle-option.resist {
+            background: var(--health);
+        }
+
+        .battle-option.give-in {
+            background: var(--evil);
+        }
+
+        .achievements {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+        }
+
+        .achievement-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: var(--background);
+            border-radius: 10px;
+        }
+
+        .achievement-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            margin-right: 15px;
+            font-size: 20px;
+        }
+
+        .achievement-info {
+            flex-grow: 1;
+        }
+
+        .achievement-progress {
+            font-size: 12px;
+            color: var(--primary);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        .reward-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--card);
+            padding: 20px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
+
+        .reward-popup.show {
+            display: block;
+            animation: popIn 0.3s ease-out;
+        }
+
+        @keyframes popIn {
+            0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        .reward-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--card);
+            padding: 10px;
+            gap: 0;
+            margin-bottom: 0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .nav-tab {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 4px;
+            background: transparent;
+            border-radius: 0;
+            cursor: pointer;
+            transition: color 0.2s;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .nav-tab.active {
+            background: transparent;
+            color: var(--primary);
+        }
+
+        .nav-tab i {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .teammate-card {
+            background: var(--card);
+            border-radius: 15px;
+            padding: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .teammate-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .teammate-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            margin-right: 10px;
+        }
+
+        .teammate-health {
+            height: 6px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .teammate-health-fill {
+            height: 100%;
+            background: var(--health);
+            transition: width 0.3s ease;
+        }
+
+        .support-task {
+            background: var(--background);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .support-options {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .support-option {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+            background: var(--primary);
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .support-option:hover {
+            transform: translateY(-2px);
+        }
+
+        .reflection-form {
+            background: var(--card);
+            padding: 15px;
+            border-radius: 15px;
+            margin-top: 15px;
+        }
+
+        .reflection-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-top: 10px;
+            resize: vertical;
+        }
+
+        .send-support {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin-top: 10px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .reflection-task {
+            background: linear-gradient(135deg, var(--evil), var(--accent));
+            color: white;
+            padding: 20px;
+            border-radius: 20px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .reflection-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .reflection-option {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            font-size: 14px;
+        }
+
+        .reflection-option:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .inspiration-form {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .inspiration-type {
+            margin-bottom: 15px;
+        }
+
+        .inspiration-type label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .inspiration-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-top: 5px;
+            resize: vertical;
+        }
+
+        .file-upload {
+            display: none;
+        }
+
+        .upload-label {
+            display: inline-block;
+            padding: 10px 20px;
+            background: var(--primary);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .team-quests {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+        }
+
+        .quest-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .quest-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
+            transition: transform 0.2s;
+        }
+
+        .quest-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .quest-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .quest-xp {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .quest-progress {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .quest-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .quest-button {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            flex: 1;
+        }
+
+        .quest-button:hover {
+            background: var(--evil);
+        }
+
+        .quest-members {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .quest-member {
+            width: 30px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .profile-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            background: white;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: var(--primary);
+        }
+
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .profile-stat {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .achievement-card {
+            background: var(--card);
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+
+        .achievement-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .achievement-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .achievement-date {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .achievement-locked {
+            opacity: 0.5;
+            filter: grayscale(1);
+        }
+
+        .progress-section {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 20px;
+            margin-top: 20px;
+        }
+
+        .progress-chart {
+            height: 200px;
+            margin: 20px 0;
+            background: var(--background);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-bar {
+            position: absolute;
+            bottom: 0;
+            width: 30px;
+            background: var(--primary);
+            border-radius: 5px 5px 0 0;
+            transition: height 0.3s;
+        }
+
+        .personal-quests {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            padding: 10px;
+        }
+
+        .quest-category {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 20px;
+        }
+
+        .quest-category h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .daily-quest {
+            background: linear-gradient(135deg, #4ade80, #22c55e);
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .weekly-quest {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+        }
+
+        .challenge-quest {
+            background: linear-gradient(135deg, #f43f5e, #e11d48);
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+        }
+
+        .quest-timer {
+            font-size: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 10px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .quest-reward {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .quest-difficulty {
+            display: flex;
+            gap: 3px;
+            margin-top: 10px;
+        }
+
+        .difficulty-star {
+            color: gold;
+        }
+
+        .reflection-page {
+            padding: 20px;
+        }
+
+        .reflection-categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .reflection-category {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 20px;
+        }
+
+        .reflection-list {
+            margin-top: 15px;
+        }
+
+        .reflection-item {
+            background: linear-gradient(135deg, var(--evil), var(--accent));
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .reflection-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .reflection-date {
+            font-size: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 10px;
+            border-radius: 20px;
+        }
+
+        .reflection-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .reflection-action {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            font-size: 14px;
+        }
+
+        .reflection-action:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .quest-page {
+            padding: 20px;
+        }
+
+        .quest-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .quest-section {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 20px;
+        }
+
+        .daily-quest {
+            background: linear-gradient(135deg, #4ade80, #22c55e);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .weekly-quest {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .special-quest {
+            background: linear-gradient(135deg, #f43f5e, #e11d48);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .quest-reward {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .quest-timer {
+            font-size: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 10px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .quest-difficulty {
+            display: flex;
+            gap: 3px;
+            margin-top: 10px;
+        }
+
+        .difficulty-star {
+            color: gold;
+        }
+
+        .quest-progress {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            width: 60%;
+            transition: width 0.3s ease;
+        }
+
+        /* Добавляем стили для вкладок кома��ды */
+        .team-subtabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: var(--card);
+            padding: 10px;
+            border-radius: 15px;
+        }
+
+        .team-subtab {
+            padding: 8px 16px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #94a3b8;
+            transition: all 0.2s;
+        }
+
+        .team-subtab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .team-subpage {
+            display: none;
+        }
+
+        .team-subpage.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <div class="nav-tabs">
+        <div class="nav-tab" onclick="showPage('profile')">
+            <i class="fas fa-user"></i>
+            <span>Профиль</span>
+        </div>
+        <div class="nav-tab" onclick="showPage('reflection')">
+            <i class="fas fa-brain"></i>
+            <span>Рефлексия</span>
+        </div>
+        <div class="nav-tab active" onclick="showPage('battle')">
+            <i class="fas fa-home"></i>
+            <span>Главная</span>
+        </div>
+        <div class="nav-tab" onclick="showPage('team')">
+            <i class="fas fa-users"></i>
+            <span>Команда</span>
+        </div>
+        <div class="nav-tab" onclick="showPage('quests')">
+            <i class="fas fa-tasks"></i>
+            <span>Задачи</span>
+        </div>
+    </div>
+
+    <div id="battlePage" class="page active">
+        <div class="header">
+            <h1>Битва с ленью</h1>
+            <div class="health-bar">
+                <div class="health-fill" id="healthBar"></div>
+            </div>
+        </div>
+
+        <div class="player-stats">
+            <div class="stat-card">
+                <div class="stat-value">100</div>
+                <div class="stat-label">HP</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">750</div>
+                <div class="stat-label">Очки</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">8</div>
+                <div class="stat-label">Победы</div>
+            </div>
+        </div>
+
+        <div class="minion-battle" id="minionBattle">
+            <h3>⚡ Приспешник лени атакует!</h3>
+            <p id="minionMessage">Может, пропустим сегодняшнюю т��енировку? Посмотри, какой хороший фильм идёт...</p>
+            <div class="battle-options">
+                <button class="battle-option resist" onclick="fightMinion(true)">Сопротивляться (+20 HP)</button>
+                <button class="battle-option give-in" onclick="fightMinion(false)">Поддаться (-30 HP)</button>
+            </div>
+        </div>
+
+        <div class="achievements">
+            <h3>Достижения</h3>
+            <div class="achievement-item">
+                <div class="achievement-icon">🏆</div>
+                <div class="achievement-info">
+                    <h4>Борец с ленью</h4>
+                    <div class="achievement-progress">Победите 10 приспешников (6/10)</div>
+                </div>
+            </div>
+            <div class="achievement-item">
+                <div class="achievement-icon">⚔️</div>
+                <div class="achievement-info">
+                    <h4>Железная воля</h4>
+                    <div class="achievement-progress">Победите 5 приспешников подряд (3/5)</div>
+                </div>
+            </div>
+            <div class="achievement-item">
+                <div class="achievement-icon">💪</div>
+                <div class="achievement-info">
+                    <h4>Здоровый образ жизни</h4>
+                    <div class="achievement-progress">Сохраняйте 100 HP в течение 3 дней (2/3)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="teamPage" class="page">
+        <div class="team-subtabs">
+            <button class="team-subtab" onclick="showTeamSubpage('locker')">Локер</button>
+            <button class="team-subtab active" onclick="showTeamSubpage('teammates')">Товарищи</button>
+            <button class="team-subtab" onclick="showTeamSubpage('team-quests')">Командные задания</button>
+        </div>
+
+        <div id="lockerSubpage" class="team-subpage">
+            <h3>Локер</h3>
+        </div>
+
+        <div id="teammatesSubpage" class="team-subpage active">
+            <div class="team-grid">
+                <div class="teammate-card">
+                    <div class="teammate-header">
+                        <div class="teammate-avatar">А</div>
+                        <div class="teammate-info">
+                            <h3>Алексей</h3>
+                            <div class="teammate-health">
+                                <div class="teammate-health-fill" style="width: 75%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="support-task">
+                        <p>Нужна поддержка: поддался искушению пропустить тренировку</p>
+                        <div class="support-options">
+                            <button class="support-option" onclick="showReflectionForm('Алексей', 'message')">Написать сообщение</button>
+                            <button class="support-option" onclick="showReflectionForm('Алексей', 'video')">Записать видео</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="teammate-card">
+                    <div class="teammate-header">
+                        <div class="teammate-avatar">М</div>
+                        <div class="teammate-info">
+                            <h3>Мария</h3>
+                            <div class="teammate-health">
+                                <div class="teammate-health-fill" style="width: 90%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="support-task">
+                        <p>Нужна мотивация: сомневается в своих силах</p>
+                        <div class="support-options">
+                            <button class="support-option" onclick="showReflectionForm('Мария', 'message')">Написать сообщение</button>
+                            <button class="support-option" onclick="showReflectionForm('Мария', 'video')">Записать видео</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="teammate-card">
+                    <div class="teammate-header">
+                        <div class="teammate-avatar">И</div>
+                        <div class="teammate-info">
+                            <h3>Игорь</h3>
+                            <div class="teammate-health">
+                                <div class="teammate-health-fill" style="width: 60%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="support-task">
+                        <p>Требуется рефлексия: три дня пропускал утреннюю зарядку</p>
+                        <div class="support-options">
+                            <button class="support-option" onclick="showReflectionForm('Игорь', 'message')">Написать сообщение</button>
+                            <button class="support-option" onclick="showReflectionForm('Игорь', 'video')">Записать видео</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="team-questsSubpage" class="team-subpage">
+            <div class="team-quests">
+                <h3>🎯 Командные задания</h3>
+                <div class="quest-grid">
+                    <div class="quest-card">
+                        <div class="quest-header">
+                            <h4>Приведи друга</h4>
+                            <div class="quest-xp">+100 XP</div>
+                        </div>
+                        <p>Пригласите друга присоединиться к борьбе с ленью</p>
+                        <div class="quest-progress">Выполнено: 2/3 приглашений</div>
+                        <div class="quest-members">
+                            <div class="quest-member">А</div>
+                            <div class="quest-member">М</div>
+                        </div>
+                        <div class="quest-actions">
+                            <button class="quest-button" onclick="inviteFriend()">Пригласить</button>
+                        </div>
+                    </div>
+
+                    <div class="quest-card">
+                        <div class="quest-header">
+                            <h4>Групповая тренировка</h4>
+                            <div class="quest-xp">+200 XP</div>
+                        </div>
+                        <p>Организуйте совместную тренировку с другой командой</p>
+                        <div class="quest-progress">Нужно: минимум 6 участников</div>
+                        <div class="quest-members">
+                            <div class="quest-member">И</div>
+                            <div class="quest-member">А</div>
+                            <div class="quest-member">+4</div>
+                        </div>
+                        <div class="quest-actions">
+                            <button class="quest-button" onclick="organizeTraining()">Организовать</button>
+                        </div>
+                    </div>
+
+                    <div class="quest-card">
+                        <div class="quest-header">
+                            <h4>Вирусное видео</h4>
+                            <div class="quest-xp">+300 XP</div>
+                        </div>
+                        <p>Создайте мотивационное видео всей командой</p>
+                        <div class="quest-progress">Нужно: 100 просмотров</div>
+                        <div class="quest-members">
+                            <div class="quest-member">В</div>
+                            <div class="quest-member">М</div>
+                            <div class="quest-member">И</div>
+                        </div>
+                        <div class="quest-actions">
+                            <button class="quest-button" onclick="createTeamVideo()">Создать</button>
+                        </div>
+                    </div>
+
+                    <div class="quest-card">
+                        <div class="quest-header">
+                            <h4>Статья о победе</h4>
+                            <div class="quest-xp">+150 XP</div>
+                        </div>
+                        <p>Напишите командную статью о борьбе с ленью</p>
+                        <div class="quest-progress">Мин. 1000 слов</div>
+                        <div class="quest-members">
+                            <div class="quest-member">А</div>
+                        </div>
+                        <div class="quest-actions">
+                            <button class="quest-button" onclick="writeArticle()">Написать</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="profilePage" class="page">
+        <div class="profile-header">
+            <div class="profile-avatar">А</div>
+            <h2>Андрей</h2>
+            <div class="profile-stats">
+                <div class="profile-stat">
+                    <div class="stat-number">15</div>
+                    <div class="stat-label">Побед</div>
+                </div>
+                <div class="profile-stat">
+                    <div class="stat-number">5</div>
+                    <div class="stat-label">Уровень</div>
+                </div>
+                <div class="profile-stat">
+                    <div class="stat-number">750</div>
+                    <div class="stat-label">XP</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="progress-section">
+            <h3>Прогресс за неделю</h3>
+            <div class="progress-chart">
+                <div class="chart-bar" style="height: 60%; left: 10px;"></div>
+                <div class="chart-bar" style="height: 80%; left: 50px;"></div>
+                <div class="chart-bar" style="height: 40%; left: 90px;"></div>
+                <div class="chart-bar" style="height: 90%; left: 130px;"></div>
+                <div class="chart-bar" style="height: 70%; left: 170px;"></div>
+                <div class="chart-bar" style="height: 85%; left: 210px;"></div>
+                <div class="chart-bar" style="height: 65%; left: 250px;"></div>
+            </div>
+        </div>
+
+        <h3>Достижения</h3>
+        <div class="achievements-grid">
+            <div class="achievement-card">
+                <div class="achievement-icon">🏆</div>
+                <h4>Первая победа</h4>
+                <p>Победите первого приспешника лени</p>
+                <div class="achievement-date">Получено: 12.01.2024</div>
+            </div>
+
+            <div class="achievement-card">
+                <div class="achievement-icon">⚔️</div>
+                <h4>Железная воля</h4>
+                <p>5 побед подряд</p>
+                <div class="achievement-date">Получено: 15.01.2024</div>
+            </div>
+
+            <div class="achievement-card">
+                <div class="achievement-icon">🎯</div>
+                <h4>Командный игрок</h4>
+                <p>Выполните 3 командных задания</p>
+                <div class="achievement-date">Получено: 18.01.2024</div>
+            </div>
+
+            <div class="achievement-card achievement-locked">
+                <div class="achievement-icon">💪</div>
+                <h4>Наставник</h4>
+                <p>Помогите 5 товарищам</p>
+                <div class="achievement-progress">2/5</div>
+            </div>
+
+            <div class="achievement-card">
+                <div class="achievement-icon">🌟</div>
+                <h4>Вдохновитель</h4>
+                <p>Создайте вирусное видео</p>
+                <div class="achievement-date">Получено: 20.01.2024</div>
+            </div>
+
+            <div class="achievement-card achievement-locked">
+                <div class="achievement-icon">🔥</div>
+                <h4>Несгибаемый</h4>
+                <p>30 дней без поражений</p>
+                <div class="achievement-progress">18/30 дней</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="questsPage" class="page quest-page">
+        <div class="quest-grid">
+            <div class="quest-section">
+                <h3>📅 Ежедневные задания</h3>
+                <div class="daily-quest">
+                    <div class="quest-reward">+50 XP</div>
+                    <h4>Утренняя зарядка</h4>
+                    <p>Выполните комплекс упражнений сразу после пробуждения</p>
+                    <div class="quest-timer">Осталось: 14 часов</div>
+                    <div class="quest-difficulty">
+                        <span class="difficulty-star">⭐</span>
+                    </div>
+                </div>
+
+                <div class="daily-quest">
+                    <div class="quest-reward">+30 XP</div>
+                    <h4>Здоровый завтрак</h4>
+                    <p>Приготовьте полезный завтрак вместо фастфуда</p>
+                    <div class="quest-timer">Осталось: 8 часов</div>
+                    <div class="quest-difficulty">
+                        <span class="difficulty-star">⭐</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="quest-section">
+                <h3>🎯 Еженедельные цели</h3>
+                <div class="weekly-quest">
+                    <div class="quest-reward">+200 XP</div>
+                    <h4>Марафон активности</h4>
+                    <p>Выполните все ежедневные задания в течение 5 дней</p>
+                    <div class="quest-progress">
+                        <div class="progress-fill" style="width: 60%"></div>
+                    </div>
+                    <div class="quest-timer">Прогресс: 3/5 дней</div>
+                    <div class="quest-difficulty">
+                        <span class="difficulty-star">⭐</span>
+                        <span class="difficulty-star">⭐</span>
+                    </div>
+                </div>
+
+                <div class="weekly-quest">
+                    <div class="quest-reward">+150 XP</div>
+                    <h4>Дневник успеха</h4>
+                    <p>Ведите дневник достижений всю неделю</p>
+                    <div class="quest-progress">
+                        <div class="progress-fill" style="width: 57%"></div>
+                    </div>
+                    <div class="quest-timer">Прогресс: 4/7 дней</div>
+                    <div class="quest-difficulty">
+                        <span class="difficulty-star">⭐</span>
+                        <span class="difficulty-star">⭐</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="quest-section">
+                <h3>🔥 Особые испытания</h3>
+                <div class="special-quest">
+                    <div class="quest-reward">+500 XP</div>
+                    <h4>Месяц без отговорок</h4>
+                    <p>Не поддавайтесь искушениям лени 30 дней подряд</p>
+                    <div class="quest-progress">
+                        <div class="progress-fill" style="width: 60%"></div>
+                    </div>
+                    <div class="quest-timer">Прогресс: 18/30 дней</div>
+                    <div class="quest-difficulty">
+                        <span class="difficulty-star">⭐</span>
+                        <span class="difficulty-star">⭐</span>
+                        <span class="difficulty-star">⭐</span>
+                    </div>
+                </div>
+
+                <div class="special-quest">
+                    <div class="quest-reward">+300 XP</div>
+                    <h4>Мастер самодисциплины</h4>
+                    <p>Создайте свой челлендж и выполняйте его 2 недели</p>
+                    <div class="quest-timer">Не начато</div>
+                    <div class="quest-difficulty">
+                        <span class="difficulty-star">⭐</span>
+                        <span class="difficulty-star">⭐</span>
+                        <span class="difficulty-star">⭐</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="reflectionPage" class="page reflection-page">
+        <div class="reflection-categories">
+            <div class="reflection-category">
+                <h3>🤔 Моменты слабости</h3>
+                <div class="reflection-list">
+                    <div class="reflection-item">
+                        <div class="reflection-header">
+                            <h4>Пропущенная тренировка</h4>
+                            <div class="reflection-date">Сегодня, 14:30</div>
+                        </div>
+                        <p>Поддался искушению пропустить тренировку из-за усталости</p>
+                        <div class="reflection-actions">
+                            <button class="reflection-action" onclick="showInspirationForm('message')">
+                                Написать обещание
+                            </button>
+                            <button class="reflection-action" onclick="showInspirationForm('video')">
+                                Записать видео
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="reflection-category">
+                <h3>💪 План действий</h3>
+                <div class="reflection-list">
+                    <div class="reflection-item">
+                        <div class="reflection-header">
+                            <h4>Новая стратегия</h4>
+                            <div class="reflection-date">Вчера, 18:45</div>
+                        </div>
+                        <p>Разработать план утренних тренировок на неделю вперёд</p>
+                        <div class="reflection-actions">
+                            <button class="reflection-action" onclick="showInspirationForm('challenge')">
+                                Создать челлендж
+                            </button>
+                            <button class="reflection-action" onclick="showInspirationForm('social')">
+                                Поделиться планом
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="reflection-category">
+                <h3>🌟 Обещания команде</h3>
+                <div class="reflection-list">
+                    <div class="reflection-item">
+                        <div class="reflection-header">
+                            <h4>Клятва силы воли</h4>
+                            <div class="reflection-date">2 дня назад</div>
+                        </div>
+                        <p>Обещаю быть примером для команды и не пропускать тренировки</p>
+                        <div class="reflection-actions">
+                            <button class="reflection-action" onclick="showInspirationForm('message')">
+                                Обновить обещание
+                            </button>
+                            <button class="reflection-action" onclick="inviteTeam()">
+                                Позвать команду
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="reward-popup" id="rewardPopup">
+    <div class="reward-icon">🎉</div>
+    <h3>Награда получена!</h3>
+    <p id="rewardMessage"></p>
+</div>
+
+<div class="reflection-task" id="reflectionTask">
+    <h3>🔥 Время для рефлексии!</h3>
+    <p>Вы поддались искушению, но это не конец. Вдохновите команду и покажите, что готовы бороться дальше!</p>
+
+    <div class="reflection-options">
+        <button class="reflection-option" onclick="showInspirationForm('message')">
+            Написать вдохновляющее сообщение
+        </button>
+        <button class="reflection-option" onclick="showInspirationForm('video')">
+            Записать видео обращение
+        </button>
+        <button class="reflection-option" onclick="showInspirationForm('social')">
+            Создать пост в соцсети
+        </button>
+        <button class="reflection-option" onclick="showInspirationForm('challenge')">
+            Запустить командный челлендж
+        </button>
+    </div>
+</div>
+
+<div class="inspiration-form" id="inspirationForm">
+    <h3>Вдохновите команду</h3>
+
+    <div class="inspiration-type" id="messageForm" style="display: none;">
+        <label>Напишите вдохновляющее сообщение команде:</label>
+        <textarea class="inspiration-input" rows="4" placeholder="Расскажите о своих чувствах, планах и решимости бороться дальше..."></textarea>
+    </div>
+
+    <div class="inspiration-type" id="videoForm" style="display: none;">
+        <label>Загрузите видео обращение команде:</label>
+        <input type="file" accept="video/*" class="file-upload" id="videoUpload">
+        <label for="videoUpload" class="upload-label">Выбрать видео</label>
+        <textarea class="inspiration-input" rows="2" placeholder="Добавьте описание к видео..."></textarea>
+    </div>
+
+    <div class="inspiration-type" id="socialForm" style="display: none;">
+        <label>Создайте вдохновляющий пост:</label>
+        <textarea class="inspiration-input" rows="4" placeholder="Напишите текст поста..."></textarea>
+        <input type="file" accept="image/*" class="file-upload" id="imageUpload">
+        <label for="imageUpload" class="upload-label">Добавить фото</label>
+    </div>
+
+    <div class="inspiration-type" id="challengeForm" style="display: none;">
+        <label>Опишите командный челлендж:</label>
+        <input type="text" class="inspiration-input" placeholder="Название челленд��а">
+        <textarea class="inspiration-input" rows="3" placeholder="Опишите правила и цель челленджа..."></textarea>
+        <input type="number" class="inspiration-input" placeholder="Длительность в днях">
+    </div>
+
+    <button class="send-support" onclick="submitInspiration()">Отправить команде</button>
+</div>
+
+<script>
+    let health = 100;
+    let victories = 0;
+    let consecutiveVictories = 0;
+
+    const minionMessages = [
+        "Может, пропустим сегодняшнюю тренировку? Посмотри, какой хороший фильм идёт...",
+        "Зачем готовить здоровую еду? Давай закажем фастфуд!",
+        "Эта задача слишком сложная... Займёмся ей завтра?",
+        "Ещё 5 минут в соцсетях не повредят...",
+        "Утренняя пробежка? В такую погоду лучше поспать!"
+    ];
+
+    function fightMinion(resist) {
+        if (resist) {
+            health = Math.min(100, health + 20);
+            victories++;
+            consecutiveVictories++;
+            showReward("Победа над ленью! +20 HP");
+            checkAchievements();
+        } else {
+            health = Math.max(0, health - 30);
+            consecutiveVictories = 0;
+            addReflectionMoment();
+        }
+
+        updateHealth();
+        generateNewMinion();
+    }
+
+    function updateHealth() {
+        document.getElementById('healthBar').style.width = health + '%';
+    }
+
+    function generateNewMinion() {
+        const message = minionMessages[Math.floor(Math.random() * minionMessages.length)];
+        document.getElementById('minionMessage').textContent = message;
+        currentMinion = {
+            title: 'Момент слабости',
+            description: message
+        };
+    }
+
+    function showReward(message) {
+        const popup = document.getElementById('rewardPopup');
+        document.getElementById('rewardMessage').textContent = message;
+        popup.classList.add('show');
+        setTimeout(() => {
+            popup.classList.remove('show');
+        }, 3000);
+    }
+
+    function showPage(pageId) {
+        document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+        document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+
+        document.getElementById(pageId + 'Page').classList.add('active');
+        event.target.classList.add('active');
+
+        if (pageId === 'profile') {
+            updateProfileStats();
+        } else if (pageId === 'quests') {
+            updateQuestTimers();
+        }
+    }
+
+    function showReflectionForm(teammate, type) {
+        const form = document.getElementById('reflectionForm');
+        form.style.display = 'block';
+        document.getElementById('supportTarget').textContent = teammate;
+
+        const input = form.querySelector('.reflection-input');
+        if (type === 'video') {
+            input.placeholder = 'Опишите идею для вдохновляющего видео...';
+        } else {
+            input.placeholder = 'Напишите вдохновляющее сообщение...';
+        }
+    }
+
+    function sendSupport() {
+        const message = document.querySelector('.reflection-input').value;
+        const teammate = document.getElementById('supportTarget').textContent;
+
+        showReward(`Поддержка отправлена ${teammate}! +10 HP к команде`);
+
+        document.getElementById('reflectionForm').style.display = 'none';
+        document.querySelector('.reflection-input').value = '';
+    }
+
+    function showReflectionTask() {
+        document.getElementById('reflectionTask').style.display = 'block';
+        document.getElementById('minionBattle').style.display = 'none';
+    }
+
+    function showInspirationForm(type) {
+        const form = document.getElementById('inspirationForm');
+        form.style.display = 'block';
+
+        // Скрываем все формы
+        document.querySelectorAll('.inspiration-type').forEach(el => el.style.display = 'none');
+
+        // Показываем нужную форму
+        document.getElementById(type + 'Form').style.display = 'block';
+
+        document.getElementById('reflectionTask').style.display = 'none';
+    }
+
+    function submitInspiration() {
+        const message = document.querySelector('.inspiration-input').value;
+
+        // Здесь можно добавить логику отправки вдохновляющего контента
+        showReward("Ваше вдохновляющее сообщение отправлено команде! +10 HP");
+
+        // Возвращаем интерфейс в исходное состояние
+        document.getElementById('inspirationForm').style.display = 'none';
+        document.getElementById('minionBattle').style.display = 'block';
+        document.querySelector('.inspiration-input').value = '';
+
+        // Восстанавливаем часть HP за проявленную инициативу
+        health = Math.min(100, health + 10);
+        updateHealth();
+    }
+
+    function inviteFriend() {
+        showModal('Приглашение друга', `
+                <input type="email" class="inspiration-input" placeholder="Email друга">
+                <textarea class="inspiration-input" placeholder="Персональное сообщение"></textarea>
+            `);
+    }
+
+    function organizeTraining() {
+        showModal('Организация тренировки', `
+                <input type="date" class="inspiration-input">
+                <input type="time" class="inspiration-input">
+                <textarea class="inspiration-input" placeholder="Описание тренировки"></textarea>
+                <select class="inspiration-input">
+                    <option>Выберите команду для приглашения</option>
+                    <option>Команда Альфа</option>
+                    <option>Команда Бета</option>
+                </select>
+            `);
+    }
+
+    function createTeamVideo() {
+        showModal('Создание видео', `
+                <input type="text" class="inspiration-input" placeholder="Название видео">
+                <textarea class="inspiration-input" placeholder="Сценарий"></textarea>
+                <div class="quest-members" style="margin: 10px 0;">
+                    <div class="quest-member">В</div>
+                    <div class="quest-member">М</div>
+                    <div class="quest-member">И</div>
+                </div>
+                <button class="quest-button">Пригласить участников</button>
+            `);
+    }
+
+    function writeArticle() {
+        showModal('Написание статьи', `
+                <input type="text" class="inspiration-input" placeholder="Заголовок статьи">
+                <textarea class="inspiration-input" rows="10" placeholder="Текст статьи"></textarea>
+                <div class="quest-members" style="margin: 10px 0;">
+                    <div class="quest-member">А</div>
+                    <button class="quest-button">Пригласить соавторов</button>
+                </div>
+            `);
+    }
+
+    function showModal(title, content) {
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                padding: 20px;
+                border-radius: 15px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+                z-index: 1000;
+                width: 90%;
+                max-width: 500px;
+            `;
+        modal.innerHTML = `
+                <h3 style="margin-bottom: 15px;">${title}</h3>
+                ${content}
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button class="quest-button" onclick="completeQuest(this)">Подтвердить</button>
+                    <button class="quest-button" onclick="this.parentElement.parentElement.remove()" style="background: #gray;">Отмена</button>
+                </div>
+            `;
+        document.body.appendChild(modal);
+    }
+
+    function completeQuest(button) {
+        const modal = button.parentElement.parentElement;
+        showReward("Задание отправлено команде! +50 XP");
+        modal.remove();
+    }
+
+    function checkAchievements() {
+        if (victories === 1) {
+            showReward("Достижение разблокировано: Первая победа! 🏆");
+        }
+        if (victories === 10) {
+            showReward("Достижение разблокировано: Опытный боец! 🏆");
+        }
+        // Добавьте другие проверки достижений
+    }
+
+    function updateProfileStats() {
+        // Здесь можно добавить обновление статистики профиля
+        // Например, обновление графика прогресса
+        const bars = document.querySelectorAll('.chart-bar');
+        bars.forEach(bar => {
+            const randomHeight = Math.floor(Math.random() * 100);
+            bar.style.height = `${randomHeight}%`;
+        });
+    }
+
+    function updateQuestTimers() {
+        const now = new Date();
+        const timers = document.querySelectorAll('.quest-timer');
+
+        timers.forEach(timer => {
+            if (timer.textContent.includes('Осталось')) {
+                // Обновляем таймеры для ежедневных заданий
+                const hours = 23 - now.getHours();
+                const minutes = 59 - now.getMinutes();
+                timer.textContent = `Осталось: ${hours}ч ${minutes}м`;
+            }
+        });
+    }
+
+    function addReflectionMoment() {
+        const reflectionList = document.querySelector('.reflection-list');
+        const moment = document.createElement('div');
+        moment.className = 'reflection-item';
+        moment.innerHTML = `
+                <div class="reflection-header">
+                    <h4>${currentMinion.title}</h4>
+                    <div class="reflection-date">Сейчас</div>
+                </div>
+                <p>${currentMinion.description}</p>
+                <div class="reflection-actions">
+                    <button class="reflection-action" onclick="showInspirationForm('message')">
+                        Написать обещание
+                    </button>
+                    <button class="reflection-action" onclick="showInspirationForm('video')">
+                        Записать видео
+                    </button>
+                </div>
+            `;
+        reflectionList.prepend(moment);
+        showPage('reflection');
+    }
+
+    let currentMinion = {
+        title: '',
+        description: ''
+    };
+
+    // Генерируем первого приспешника при загрузке
+    generateNewMinion();
+
+    // Обновляем таймеры каждую минуту
+    setInterval(updateQuestTimers, 60000);
+
+    // Зап��скаем первое обновление
+    updateQuestTimers();
+
+    function showTeamSubpage(pageId) {
+        document.querySelectorAll('.team-subpage').forEach(page => page.classList.remove('active'));
+        document.querySelectorAll('.team-subtab').forEach(tab => tab.classList.remove('active'));
+        
+        document.getElementById(pageId + 'Subpage').classList.add('active');
+        event.target.classList.add('active');
+    }
+</script>
+</body>
+</html> 
