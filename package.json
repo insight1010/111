@@ -1,0 +1,11 @@
+{
+  "name": "battle-with-laziness",
+  "version": "1.0.0",
+  "description": "Веб-приложение для борьбы с ленью",
+  "scripts": {
+    "build": "tailwindcss -i ./src/input.css -o ./dist/output.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.1"
+  }
+} 

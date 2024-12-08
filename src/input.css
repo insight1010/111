@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .nav-tab {
+    @apply flex-1 flex flex-col items-center p-2 bg-transparent rounded-none cursor-pointer transition-colors text-sm text-gray-400;
+  }
+  
+  .nav-tab.active {
+    @apply bg-transparent text-primary;
+  }
+  
+  .achievement-card {
+    @apply bg-card p-4 rounded-xl text-center transition-transform hover:-translate-y-1;
+  }
+  
+  .quest-card {
+    @apply bg-opacity-10 bg-white p-4 rounded-xl backdrop-blur-sm transition-transform hover:-translate-y-1;
+  }
+} 
